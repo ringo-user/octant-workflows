@@ -351,7 +351,7 @@ jobs:
 
         # mv ${CI_PROJECT_DIR}/contracts.env ${CI_PROJECT_DIR}/ci/argocd/contracts/${ENV_TYPE}.env
 
-        echo foo > "${CI_PROJECT_DIR}/bar"
+        echo bar > "${CI_PROJECT_DIR}/bar"
 
         gpg --import <(echo ${HOUSEKEEPER_GITHUB_SIGNING_KEY} | base64 -d)
 
