@@ -362,6 +362,7 @@ jobs:
 
         git add "${CI_PROJECT_DIR}/bar"
         git commit -S -m "[CI/CD] Update ${ENV_TYPE}.env contracts"
+      shell: bash
     - name: Push changes
       uses: ad-m/github-push-action@master
       with:
