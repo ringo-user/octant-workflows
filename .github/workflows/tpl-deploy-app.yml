@@ -324,8 +324,8 @@ jobs:
     name: Update persistent contracts
     needs:
     # We need to explicitly set all jobs for `needs.*` array to have all workflow jobs
-    - wait-for-app
-    if: ${{ success() && inputs.deploy-contracts && (inputs.env-type == 'uat' || inputs.env-type == 'master') }}
+    # - wait-for-app
+    # if: ${{ success() && inputs.deploy-contracts && (inputs.env-type == 'uat' || inputs.env-type == 'master') }}
     runs-on:
     - metal
     container:
