@@ -150,6 +150,8 @@ env:
   HOUSEKEEPER_CI_TOKEN: "${{ secrets.HOUSEKEEPER_CI_TOKEN }}"
   HOUSEKEEPER_GPG_KEY: "${{ secrets.HOUSEKEEPER_GPG_KEY }}"
   HOUSEKEEPER_GPG_KEY_ID: "${{ secrets.HOUSEKEEPER_GPG_KEY_ID }}"
+  HOUSEKEEPER_GITHUB_SIGNING_KEY: "${{ secrets.HOUSEKEEPER_GITHUB_SIGNING_KEY }}"
+  HOUSEKEEPER_GITHUB_SIGNING_KEY_ID: "${{ secrets.HOUSEKEEPER_GITHUB_SIGNING_KEY_ID }}"
   ARGOCD_URL: "${{ secrets.ARGOCD_URL }}"
   ARGOCD_ACCESS_TOKEN: "${{ secrets.ARGOCD_ACCESS_TOKEN }}"
 
@@ -351,12 +353,15 @@ jobs:
 
         echo foo > "${CI_PROJECT_DIR}/bar"
 
+        gpg --import <(echo ${HOUSEKEEPER_GITHUB_SIGNING_KEY} | base64 -d)
+
         git config --global --add safe.directory ${CI_PROJECT_DIR}
         git config --local user.email "birnam@wildland.io"
         git config --local user.name "Housekeeper Bot"
+        git config --local user.signingkey "${HOUSEKEEPER_GITHUB_SIGNING_KEY_ID}"
 
         git add "${CI_PROJECT_DIR}/bar"
-        git commit -m "[CI/CD] Update ${ENV_TYPE}.env contracts"
+        git commit -S -m "[CI/CD] Update ${ENV_TYPE}.env contracts"
     - name: Push changes
       uses: ad-m/github-push-action@master
       with:
