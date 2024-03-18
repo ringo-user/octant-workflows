@@ -156,178 +156,178 @@ env:
   ARGOCD_ACCESS_TOKEN: "${{ secrets.ARGOCD_ACCESS_TOKEN }}"
 
 jobs:
-  # start-anvil:
-  #   name: Start Anvil
-  #   if: ${{ inputs.deploy-contracts }}
-  #   runs-on:
-  #   - metal
-  #   container:
-  #     image: registry.gitlab.com/golemfoundation/devops/container-builder/gitops-builder:2ea6d57c
-  #     credentials:
-  #       username: "doesnt-matter"
-  #       password: "${{ secrets.GITLAB_PAT_CONTAINER_BUILDER_DOCKER_IMAGES_READ }}"
-  #   steps:
-  #   - uses: actions/checkout@v4.1.0
-  #     with:
-  #       ref: ${{ inputs.branch-head-ref }}
+  start-anvil:
+    name: Start Anvil
+    if: ${{ inputs.deploy-contracts }}
+    runs-on:
+    - metal
+    container:
+      image: registry.gitlab.com/golemfoundation/devops/container-builder/gitops-builder:2ea6d57c
+      credentials:
+        username: "doesnt-matter"
+        password: "${{ secrets.GITLAB_PAT_CONTAINER_BUILDER_DOCKER_IMAGES_READ }}"
+    steps:
+    - uses: actions/checkout@v4.1.0
+      with:
+        ref: ${{ inputs.branch-head-ref }}
 
-  #   - name: (debug)
-  #     run: |
-  #       set -ex
+    - name: (debug)
+      run: |
+        set -ex
 
-  #       env
-  #       ls -l
+        env
+        ls -l
 
-  #       echo ${{ inputs.env-type }}
-  #       echo ${{ inputs.image-tag }}
-  #       echo ${{ inputs.pull-request-id }}
-  #       echo ${{ inputs.workflow-id }}
-  #     shell: bash
+        echo ${{ inputs.env-type }}
+        echo ${{ inputs.image-tag }}
+        echo ${{ inputs.pull-request-id }}
+        echo ${{ inputs.workflow-id }}
+      shell: bash
 
-  #   - name: Set up Gitops mutex
-  #     uses: ben-z/gh-action-mutex@v1.0-alpha-8
-  #     with:
-  #       branch: gitops-mutex
+    - name: Set up Gitops mutex
+      uses: ben-z/gh-action-mutex@v1.0-alpha-8
+      with:
+        branch: gitops-mutex
 
-  #   - name: Deploy Anvil Argo application
-  #     run: |
-  #       set -ex
+    - name: Deploy Anvil Argo application
+      run: |
+        set -ex
 
-  #       export CI_PROJECT_DIR="${GITHUB_WORKSPACE}"
+        export CI_PROJECT_DIR="${GITHUB_WORKSPACE}"
 
-  #       source ${CI_PROJECT_DIR}/ci/argocd/resolve_env.sh $ENV_TYPE
-  #       bash ${CI_PROJECT_DIR}/ci/argocd/application.sh create
-  #     shell: bash
+        source ${CI_PROJECT_DIR}/ci/argocd/resolve_env.sh $ENV_TYPE
+        bash ${CI_PROJECT_DIR}/ci/argocd/application.sh create
+      shell: bash
 
-  # deploy-contracts:
-  #   name: Deploy Contracts
-  #   needs:
-  #   - start-anvil
-  #   if: ${{ inputs.deploy-contracts }}
-  #   runs-on:
-  #   - metal
-  #   outputs:
-  #     anvil_rpc_url: ${{ steps.deploy.outputs.LOCAL_RPC_URL }}
-  #   container:
-  #     image: ${{ vars.GCP_DOCKER_IMAGE_REGISTRY }}/contracts-v1:${{ inputs.image-tag }}
-  #     credentials:
-  #       username: "_json_key_base64"
-  #       password: "${{ secrets.GCP_DOCKER_IMAGES_REGISTRY_SERVICE_ACCOUNT }}"
-  #   steps:
-  #   - uses: actions/checkout@v4.1.0
-  #     with:
-  #       ref: ${{ inputs.branch-head-ref }}
+  deploy-contracts:
+    name: Deploy Contracts
+    needs:
+    - start-anvil
+    if: ${{ inputs.deploy-contracts }}
+    runs-on:
+    - metal
+    outputs:
+      anvil_rpc_url: ${{ steps.deploy.outputs.LOCAL_RPC_URL }}
+    container:
+      image: ${{ vars.GCP_DOCKER_IMAGE_REGISTRY }}/contracts-v1:${{ inputs.image-tag }}
+      credentials:
+        username: "_json_key_base64"
+        password: "${{ secrets.GCP_DOCKER_IMAGES_REGISTRY_SERVICE_ACCOUNT }}"
+    steps:
+    - uses: actions/checkout@v4.1.0
+      with:
+        ref: ${{ inputs.branch-head-ref }}
 
-  #   - name: Deploy contracts
-  #     id: deploy
-  #     run: |
-  #       set -ex
+    - name: Deploy contracts
+      id: deploy
+      run: |
+        set -ex
 
-  #       export CI_PROJECT_DIR="${GITHUB_WORKSPACE}"
-  #       export EPOCHS_START=$(date +%s)
+        export CI_PROJECT_DIR="${GITHUB_WORKSPACE}"
+        export EPOCHS_START=$(date +%s)
 
-  #       source ${CI_PROJECT_DIR}/ci/argocd/resolve_env.sh $ENV_TYPE
-  #       bash ${CI_PROJECT_DIR}/ci/argocd/wait_for_app.sh
+        source ${CI_PROJECT_DIR}/ci/argocd/resolve_env.sh $ENV_TYPE
+        bash ${CI_PROJECT_DIR}/ci/argocd/wait_for_app.sh
 
-  #       export LOCAL_RPC_URL; LOCAL_RPC_URL=https://$(bash ${CI_PROJECT_DIR}/ci/argocd/get_rpc_url.sh)
+        export LOCAL_RPC_URL; LOCAL_RPC_URL=https://$(bash ${CI_PROJECT_DIR}/ci/argocd/get_rpc_url.sh)
 
-  #       # BUG: For some reason this cache is a problem for this job to pass
-  #       # https://linear.app/golemfoundation/issue/OCT-1382/error-during-ci-contracts-deployment
-  #       rm -r $HOME/.cache/hardhat-nodejs/
+        # BUG: For some reason this cache is a problem for this job to pass
+        # https://linear.app/golemfoundation/issue/OCT-1382/error-during-ci-contracts-deployment
+        rm -r $HOME/.cache/hardhat-nodejs/
 
-  #       /app/entrypoint.sh $NETWORK ${CI_PROJECT_DIR}/contracts.env
+        /app/entrypoint.sh $NETWORK ${CI_PROJECT_DIR}/contracts.env
 
-  #       echo "LOCAL_RPC_URL=$LOCAL_RPC_URL" >> $GITHUB_OUTPUT
-  #     shell: bash
-  #   - uses: actions/upload-artifact@v4
-  #     if: success()
-  #     with:
-  #       name: ${{ env.ENV_TYPE }}-contracts-env
-  #       retention-days: 1
-  #       if-no-files-found: error
-  #       compression-level: 0
-  #       overwrite: true
-  #       path: |-
-  #         contracts.env
+        echo "LOCAL_RPC_URL=$LOCAL_RPC_URL" >> $GITHUB_OUTPUT
+      shell: bash
+    - uses: actions/upload-artifact@v4
+      if: success()
+      with:
+        name: ${{ env.ENV_TYPE }}-contracts-env
+        retention-days: 1
+        if-no-files-found: error
+        compression-level: 0
+        overwrite: true
+        path: |-
+          contracts.env
 
-  # start-application-stack:
-  #   name: Start Application Stack
-  #   needs:
-  #   - deploy-contracts
-  #   runs-on:
-  #   - metal
-  #   if: always()
-  #   container:
-  #     image: registry.gitlab.com/golemfoundation/devops/container-builder/gitops-builder:2ea6d57c
-  #     credentials:
-  #       username: "doesnt-matter"
-  #       password: "${{ secrets.GITLAB_PAT_CONTAINER_BUILDER_DOCKER_IMAGES_READ }}"
-  #   steps:
-  #   - uses: actions/checkout@v4.1.0
-  #     with:
-  #       ref: ${{ inputs.branch-head-ref }}
+  start-application-stack:
+    name: Start Application Stack
+    needs:
+    - deploy-contracts
+    runs-on:
+    - metal
+    if: always()
+    container:
+      image: registry.gitlab.com/golemfoundation/devops/container-builder/gitops-builder:2ea6d57c
+      credentials:
+        username: "doesnt-matter"
+        password: "${{ secrets.GITLAB_PAT_CONTAINER_BUILDER_DOCKER_IMAGES_READ }}"
+    steps:
+    - uses: actions/checkout@v4.1.0
+      with:
+        ref: ${{ inputs.branch-head-ref }}
 
-  #   - uses: actions/download-artifact@v4
-  #     if: ${{ inputs.deploy-contracts }}
-  #     with:
-  #       name: ${{ env.ENV_TYPE }}-contracts-env
-  #   - name: Set up Gitops mutex
-  #     uses: ben-z/gh-action-mutex@v1.0-alpha-8
-  #     with:
-  #       branch: gitops-mutex
-  #   - name: Deploy Complete Argo application
-  #     run: |
-  #       set -ex
+    - uses: actions/download-artifact@v4
+      if: ${{ inputs.deploy-contracts }}
+      with:
+        name: ${{ env.ENV_TYPE }}-contracts-env
+    - name: Set up Gitops mutex
+      uses: ben-z/gh-action-mutex@v1.0-alpha-8
+      with:
+        branch: gitops-mutex
+    - name: Deploy Complete Argo application
+      run: |
+        set -ex
 
-  #       export CI_PROJECT_DIR="${GITHUB_WORKSPACE}"
+        export CI_PROJECT_DIR="${GITHUB_WORKSPACE}"
 
-  #       if [[ "${{ inputs.deploy-contracts }}" == "true" ]]; then
-  #         export $(grep -v '^#' ${CI_PROJECT_DIR}/contracts.env | xargs)
-  #       else
-  #         # sourcing hardcoded contracts (master, uat, etc)
-  #         export $(grep -v '^#' ${CI_PROJECT_DIR}/ci/argocd/contracts/$ENV_TYPE.env | xargs)
-  #       fi
+        if [[ "${{ inputs.deploy-contracts }}" == "true" ]]; then
+          export $(grep -v '^#' ${CI_PROJECT_DIR}/contracts.env | xargs)
+        else
+          # sourcing hardcoded contracts (master, uat, etc)
+          export $(grep -v '^#' ${CI_PROJECT_DIR}/ci/argocd/contracts/$ENV_TYPE.env | xargs)
+        fi
 
-  #       source ${CI_PROJECT_DIR}/ci/argocd/resolve_env.sh $ENV_TYPE
-  #       bash ${CI_PROJECT_DIR}/ci/argocd/application.sh update
-  #     shell: bash
+        source ${CI_PROJECT_DIR}/ci/argocd/resolve_env.sh $ENV_TYPE
+        bash ${CI_PROJECT_DIR}/ci/argocd/application.sh update
+      shell: bash
 
-  # wait-for-app:
-  #   name: Wait for Application Readiness
-  #   needs:
-  #   - start-application-stack
-  #   runs-on:
-  #   - metal
-  #   if: always() && (needs.start-application-stack.result == 'success')
-  #   outputs:
-  #     octant_web_url: ${{ steps.app.outputs.OCTANT_WEB_URL }}
-  #   container:
-  #     image: registry.gitlab.com/golemfoundation/devops/container-builder/gitops-builder:2ea6d57c
-  #     credentials:
-  #       username: "doesnt-matter"
-  #       password: "${{ secrets.GITLAB_PAT_CONTAINER_BUILDER_DOCKER_IMAGES_READ }}"
-  #   steps:
-  #   - name: Wait for application ready
-  #     id: app
-  #     run: |
-  #       set -ex
+  wait-for-app:
+    name: Wait for Application Readiness
+    needs:
+    - start-application-stack
+    runs-on:
+    - metal
+    if: always() && (needs.start-application-stack.result == 'success')
+    outputs:
+      octant_web_url: ${{ steps.app.outputs.OCTANT_WEB_URL }}
+    container:
+      image: registry.gitlab.com/golemfoundation/devops/container-builder/gitops-builder:2ea6d57c
+      credentials:
+        username: "doesnt-matter"
+        password: "${{ secrets.GITLAB_PAT_CONTAINER_BUILDER_DOCKER_IMAGES_READ }}"
+    steps:
+    - name: Wait for application ready
+      id: app
+      run: |
+        set -ex
 
-  #       export CI_PROJECT_DIR="${GITHUB_WORKSPACE}"
+        export CI_PROJECT_DIR="${GITHUB_WORKSPACE}"
 
-  #       source ${CI_PROJECT_DIR}/ci/argocd/resolve_env.sh $ENV_TYPE
-  #       bash ${CI_PROJECT_DIR}/ci/argocd/wait_for_app.sh
+        source ${CI_PROJECT_DIR}/ci/argocd/resolve_env.sh $ENV_TYPE
+        bash ${CI_PROJECT_DIR}/ci/argocd/wait_for_app.sh
 
-  #       export OCTANT_WEB_URL; OCTANT_WEB_URL=https://$(bash ${CI_PROJECT_DIR}/ci/argocd/get_web_client_url.sh)
+        export OCTANT_WEB_URL; OCTANT_WEB_URL=https://$(bash ${CI_PROJECT_DIR}/ci/argocd/get_web_client_url.sh)
 
-  #       echo "OCTANT_WEB_URL=$OCTANT_WEB_URL" >> $GITHUB_OUTPUT
-  #     shell: bash
+        echo "OCTANT_WEB_URL=$OCTANT_WEB_URL" >> $GITHUB_OUTPUT
+      shell: bash
 
   update-contracts-env:
     name: Update persistent contracts
-    # needs:
+    needs:
     # We need to explicitly set all jobs for `needs.*` array to have all workflow jobs
-    # - wait-for-app
-    # if: ${{ success() && inputs.deploy-contracts && (inputs.env-type == 'uat' || inputs.env-type == 'master') }}
+    - wait-for-app
+    if: ${{ success() && inputs.deploy-contracts && (inputs.env-type == 'uat' || inputs.env-type == 'master') }}
     runs-on:
     - metal
     container:
@@ -341,17 +341,15 @@ jobs:
         ref: ${{ inputs.branch-head-ref }}
         fetch-depth: 0
         token: ${{ secrets.HOUSEKEEPER_PAT_OCTANT_REPO }}
-    # - uses: actions/download-artifact@v4
-    #   with:
-    #     name: ${{ env.ENV_TYPE }}-contracts-env
+    - uses: actions/download-artifact@v4
+      with:
+        name: ${{ env.ENV_TYPE }}-contracts-env
     - name: Commit newly deployed contracts
       run: |
         set -ex
         export CI_PROJECT_DIR="${GITHUB_WORKSPACE}"
 
-        # mv ${CI_PROJECT_DIR}/contracts.env ${CI_PROJECT_DIR}/ci/argocd/contracts/${ENV_TYPE}.env
-
-        echo bar > "${CI_PROJECT_DIR}/bar"
+        mv ${CI_PROJECT_DIR}/contracts.env ${CI_PROJECT_DIR}/ci/argocd/contracts/${ENV_TYPE}.env
 
         gpg --import <(echo ${HOUSEKEEPER_GITHUB_SIGNING_KEY} | base64 -d)
 
@@ -360,7 +358,7 @@ jobs:
         git config --local user.name "Housekeeper Bot"
         git config --local user.signingkey "${HOUSEKEEPER_GITHUB_SIGNING_KEY_ID}"
 
-        git add "${CI_PROJECT_DIR}/bar"
+        git add ${CI_PROJECT_DIR}/ci/argocd/contracts/${ENV_TYPE}.env
         git commit -S -m "[CI/CD] Update ${ENV_TYPE}.env contracts"
       shell: bash
     - name: Push changes
@@ -369,35 +367,35 @@ jobs:
         branch: ${{ inputs.branch-head-ref }}
         github_token: ${{ secrets.HOUSEKEEPER_PAT_OCTANT_REPO }}
 
-  # update-deployment:
-  #   name: Set deployment status
-  #   needs:
-  #   # We need to explicitly set all jobs for `needs.*` array to have all workflow jobs
-  #   - start-anvil
-  #   - deploy-contracts
-  #   - start-application-stack
-  #   - wait-for-app
-  #   runs-on:
-  #   - metal
-  #   if: always()
-  #   steps:
-  #   - name: Compute workflow status
-  #     id: workflow-status
-  #     run: |
-  #       if [[ "${{ contains(join(needs.*.result, ' '), 'failure') }}" == "true" ]]; then
-  #         STATUS='failure'
-  #       else
-  #         STATUS='success'
-  #       fi
+  update-deployment:
+    name: Set deployment status
+    needs:
+    # We need to explicitly set all jobs for `needs.*` array to have all workflow jobs
+    - start-anvil
+    - deploy-contracts
+    - start-application-stack
+    - wait-for-app
+    runs-on:
+    - metal
+    if: always()
+    steps:
+    - name: Compute workflow status
+      id: workflow-status
+      run: |
+        if [[ "${{ contains(join(needs.*.result, ' '), 'failure') }}" == "true" ]]; then
+          STATUS='failure'
+        else
+          STATUS='success'
+        fi
 
-  #       echo "STATUS=$STATUS" >> $GITHUB_OUTPUT
+        echo "STATUS=$STATUS" >> $GITHUB_OUTPUT
 
-  #   - name: Update deployment status
-  #     uses: bobheadxi/deployments@v1
-  #     with:
-  #       step: finish
-  #       auto_inactive: true
-  #       status: ${{ steps.workflow-status.outputs.STATUS }}
-  #       token: ${{ secrets.GH_BOT_TOKEN }}
-  #       env: ${{ inputs.env-id }}
-  #       deployment_id: ${{ inputs.deployment-id }}
+    - name: Update deployment status
+      uses: bobheadxi/deployments@v1
+      with:
+        step: finish
+        auto_inactive: true
+        status: ${{ steps.workflow-status.outputs.STATUS }}
+        token: ${{ secrets.GH_BOT_TOKEN }}
+        env: ${{ inputs.env-id }}
+        deployment_id: ${{ inputs.deployment-id }}

@@ -2,6 +2,11 @@
 name: ▶️ Deploy Master
 on:
   workflow_dispatch:
+    inputs:
+      redeploy_contracts:
+        description: 'redeploy contracts'
+        required: true
+        type: boolean
 
 jobs:
   build:
@@ -40,4 +45,6 @@ jobs:
       scheduler-enabled: true
       vault-confirm-withdrawals-enabled: true
       glm-claim-enabled: true
+      decision-window: 1800
+      epoch-duration: 3600
     secrets: inherit

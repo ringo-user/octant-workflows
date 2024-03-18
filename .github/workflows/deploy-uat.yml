@@ -9,25 +9,25 @@ on:
         type: boolean
 
 jobs:
-  # build:
-  #   name: Build
-  #   uses: ./.github/workflows/tpl-images.yml
-  #   secrets: inherit
-  #   with:
-  #     image-tag: ${{ github.sha }}
-  # run:
-  #   name: Run
-  #   uses: ./.github/workflows/tpl-start-env.yml
-  #   secrets: inherit
-  #   with:
-  #     git-ref: ${{ github.ref }}
-  #     env-type: uat
-  #     workflow-id: ${{ github.run_id }}
+  build:
+    name: Build
+    uses: ./.github/workflows/tpl-images.yml
+    secrets: inherit
+    with:
+      image-tag: ${{ github.sha }}
+  run:
+    name: Run
+    uses: ./.github/workflows/tpl-start-env.yml
+    secrets: inherit
+    with:
+      git-ref: ${{ github.ref }}
+      env-type: uat
+      workflow-id: ${{ github.run_id }}
   deploy:
     name: Deploy
-    # needs:
-    # - build
-    # - run
+    needs:
+    - build
+    - run
     uses: ./.github/workflows/tpl-deploy-app.yml
     with:
       env-type: uat
@@ -45,4 +45,6 @@ jobs:
       scheduler-enabled: true
       vault-confirm-withdrawals-enabled: true
       glm-claim-enabled: true
+      decision-window: 1800
+      epoch-duration: 3600
     secrets: inherit
