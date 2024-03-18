@@ -86,7 +86,7 @@ jobs:
         if [[ "${{ github.event_name }}" == "pull_request" ]]; then
           export CI_MERGE_REQUEST_IID=${{ github.event.number }}
           export CI_PIPELINE_ID=${{ github.run_id }}
-        else if [[ "${{ github.event_name }}" == "issue_comment" ]]; then
+        elif [[ "${{ github.event_name }}" == "issue_comment" ]]; then
           export CI_MERGE_REQUEST_IID=${{ steps.get-pr-number.outputs.result }}
           export CI_PIPELINE_ID=${{ github.run_id }}
         else
