@@ -60,15 +60,28 @@ jobs:
       id: comment-branch
 
     - name: Check if user is an org member
-      id: is_organization_member
-      uses: JamesSingleton/is-organization-member@1.0.1
+      uses: actions/github-script@v7
+      id: is-organization-member
       with:
-        organization: golemfoundation
-        username: ${{ github.event.comment.user.login }}
-        token: ${{ secrets.GH_BOT_TOKEN }}
+        result-encoding: string
+        github-token: ${{ secrets.GH_BOT_TOKEN }}
+        script: |
+          return (
+            await github.rest.orgs.listMembers({
+              org: golemfoundation
+            })
+          ).data.map(({login}) => login).includes('${{ github.event.comment.user.login }}').toString()
+
+    # - name: Check if user is an org member
+    #   id: is-organization-member
+    #   uses: JamesSingleton/is-organization-member@1.0.1
+    #   with:
+    #     organization: golemfoundation
+    #     username: ${{ github.event.comment.user.login }}
+    #     token: ${{ secrets.GH_BOT_TOKEN }}
 
     - uses: actions/github-script@v7
-      if: ${{ steps.is_organization_member.outputs.result == 'true' }}
+      if: ${{ steps.is-organization-member.outputs.result == 'true' }}
       id: get-pr-number
       with:
         result-encoding: string
