@@ -5,43 +5,43 @@ on:
     types: [ created ]
 
 jobs:
-  build:
-    name: Build
-    needs:
-    - run
-    uses: ./.github/workflows/tpl-images.yml
-    secrets: inherit
-    with:
-      image-tag: ${{ needs.run.outputs.sha }}
+  # build:
+  #   name: Build
+  #   needs:
+  #   - run
+  #   uses: ./.github/workflows/tpl-images.yml
+  #   secrets: inherit
+  #   with:
+  #     image-tag: ${{ needs.run.outputs.sha }}
 
-  deploy:
-    name: Deploy
-    needs:
-    - run
-    - build
-    uses: ./.github/workflows/tpl-deploy-app.yml
-    with:
-      # ---
-      env-type: pr
-      branch-head-ref: ${{ needs.run.outputs.ref }}
-      image-tag: ${{ needs.run.outputs.sha }}
-      pull-request-id: ${{ needs.run.outputs.pr_id }}
-      workflow-id: ${{ github.run_id }}
-      env-id: ${{ needs.run.outputs.env }}
-      deployment-id: ${{ needs.run.outputs.deployment }}
-      # ---
-      deploy-contracts: true
-      chain-id: 1337
-      network-name: local
-      chain-name: localhost
-      snapshotter-enabled: true
-      scheduler-enabled: true
-      vault-confirm-withdrawals-enabled: true
-      glm-claim-enabled: true
-      anvil-block-time: 5
-      decision-window: 1800
-      epoch-duration: 3600
-    secrets: inherit
+  # deploy:
+  #   name: Deploy
+  #   needs:
+  #   - run
+  #   - build
+  #   uses: ./.github/workflows/tpl-deploy-app.yml
+  #   with:
+  #     # ---
+  #     env-type: pr
+  #     branch-head-ref: ${{ needs.run.outputs.ref }}
+  #     image-tag: ${{ needs.run.outputs.sha }}
+  #     pull-request-id: ${{ needs.run.outputs.pr_id }}
+  #     workflow-id: ${{ github.run_id }}
+  #     env-id: ${{ needs.run.outputs.env }}
+  #     deployment-id: ${{ needs.run.outputs.deployment }}
+  #     # ---
+  #     deploy-contracts: true
+  #     chain-id: 1337
+  #     network-name: local
+  #     chain-name: localhost
+  #     snapshotter-enabled: true
+  #     scheduler-enabled: true
+  #     vault-confirm-withdrawals-enabled: true
+  #     glm-claim-enabled: true
+  #     anvil-block-time: 5
+  #     decision-window: 1800
+  #     epoch-duration: 3600
+  #   secrets: inherit
 
   run:
     name: Run
@@ -107,12 +107,12 @@ jobs:
         echo ${{ github.event.comment.author_association }}
         echo ${{ github.run_id }}
 
-    - name: start deployment
-      uses: bobheadxi/deployments@v1
-      id: start-deployment
-      with:
-        step: start
-        token: ${{ secrets.GH_BOT_TOKEN }}
-        env: ${{ steps.env-name.outputs.DEPLOYMENT_ID }}
-        ref: ${{ steps.comment-branch.outputs.head_ref }}
-        override: true
+    # - name: start deployment
+    #   uses: bobheadxi/deployments@v1
+    #   id: start-deployment
+    #   with:
+    #     step: start
+    #     token: ${{ secrets.GH_BOT_TOKEN }}
+    #     env: ${{ steps.env-name.outputs.DEPLOYMENT_ID }}
+    #     ref: ${{ steps.comment-branch.outputs.head_ref }}
+    #     override: true
