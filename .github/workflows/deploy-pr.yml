@@ -80,6 +80,12 @@ jobs:
     #     username: ${{ github.event.comment.user.login }}
     #     token: ${{ secrets.GH_BOT_TOKEN }}
 
+    - name: Cancel workflow
+      if: ${{ steps.is-organization-member.outputs.result == 'false' }}
+      run: |
+        echo '${{ github.event.comment.user.login }} is not a member of the golemfoundation org'
+        exit 1
+
     - uses: actions/github-script@v7
       if: ${{ steps.is-organization-member.outputs.result == 'true' }}
       id: get-pr-number
@@ -95,6 +101,8 @@ jobs:
           ).data[0].number;
 
     - uses: actions/checkout@v4.1.0
+      needs:
+
       with:
         path: __local
         ref: ${{ steps.comment-branch.outputs.head_ref }}
