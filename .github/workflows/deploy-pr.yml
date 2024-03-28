@@ -45,7 +45,7 @@ jobs:
 
   run:
     name: Run
-    if: github.event.issue.pull_request && contains(github.event.comment.body, '/deploy') && github.event.comment.author_association == 'MEMBER'
+    if: github.event.issue.pull_request && contains(github.event.comment.body, '/deploy')
     runs-on:
     - metal
     outputs:
@@ -95,6 +95,7 @@ jobs:
       run: |
         echo ${{ steps.get-pr-number.outputs.result }}
         echo ${{ steps.env-name.outputs.DEPLOYMENT_ID }}
+        echo ${{ github.event.comment.author_association }}
         echo ${{ github.run_id }}
 
     - name: start deployment
