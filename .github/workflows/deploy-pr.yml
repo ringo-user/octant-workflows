@@ -45,7 +45,7 @@ jobs:
 
   run:
     name: Run
-    if: github.event.issue.pull_request && contains(github.event.comment.body, '/deploy')
+    if: github.event.issue.pull_request && contains(github.event.comment.body, '/deploy') && github.event.comment.author_association == 'MEMBER'
     runs-on:
     - metal
     outputs:
