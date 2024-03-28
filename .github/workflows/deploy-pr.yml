@@ -64,21 +64,12 @@ jobs:
       id: is-organization-member
       with:
         result-encoding: string
-        github-token: ${{ secrets.GH_BOT_TOKEN }}
         script: |
           return (
             await github.rest.orgs.listMembers({
               org: 'golemfoundation'
             })
           ).data.map(({login}) => login).includes('${{ github.event.comment.user.login }}').toString()
-
-    # - name: Check if user is an org member
-    #   id: is-organization-member
-    #   uses: JamesSingleton/is-organization-member@1.0.1
-    #   with:
-    #     organization: golemfoundation
-    #     username: ${{ github.event.comment.user.login }}
-    #     token: ${{ secrets.GH_BOT_TOKEN }}
 
     - name: Cancel workflow
       if: ${{ steps.is-organization-member.outputs.result == 'false' }}

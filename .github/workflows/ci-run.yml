@@ -390,6 +390,7 @@ jobs:
         yarn eslint
         yarn type-check
       shell: bash
+
   # +-------------------------
   # | Build
   # |   client
@@ -428,6 +429,7 @@ jobs:
           ${{ matrix.SERVICE }}/.yarn
           ${{ matrix.SERVICE }}/node-modules
         key: "${{ github.sha }}-yarn-${{ matrix.SERVICE }}"
+
   # +-------------------------
   # | Build backend
   # +-------------------------
@@ -447,6 +449,7 @@ jobs:
       with:
         path: backend/.venv
         key: "${{ github.sha }}-poetry-backend"
+
   # +-------------------------
   # | Build contracts
   # +-------------------------
@@ -480,3 +483,9 @@ jobs:
           contracts-v1/artifacts
           contracts-v1/typechain
         key: "${{ github.sha }}-yarn-contracts-v1-extras"
+
+
+  # permissions-check:
+  #   name: Permissions check
+  #   runs-on:
+  #     - metal
