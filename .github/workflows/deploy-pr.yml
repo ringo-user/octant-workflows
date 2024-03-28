@@ -101,8 +101,6 @@ jobs:
           ).data[0].number;
 
     - uses: actions/checkout@v4.1.0
-      needs:
-
       with:
         path: __local
         ref: ${{ steps.comment-branch.outputs.head_ref }}
