@@ -2,6 +2,8 @@
 name: ♻ CI Run
 on:
   pull_request:
+  pull_request_review:
+    types: [submitted]
 env:
   # ----------------------------------------------------------------------------
   # CI/CD
@@ -437,6 +439,8 @@ jobs:
     name: Build Services
     runs-on:
       - metal
+    needs:
+    - permissions-check
     container:
       image: registry.gitlab.com/golemfoundation/devops/container-builder/octant/python-poetry-ext:ad1d9179
       credentials:
@@ -457,6 +461,8 @@ jobs:
     name: Build Contracts
     runs-on:
       - metal
+    needs:
+    - permissions-check
     container:
       image: registry.gitlab.com/golemfoundation/devops/container-builder/octant/node-extended:bdda411c
       credentials:
@@ -485,7 +491,32 @@ jobs:
         key: "${{ github.sha }}-yarn-contracts-v1-extras"
 
 
-  # permissions-check:
-  #   name: Permissions check
-  #   runs-on:
-  #     - metal
+  permissions-check:
+    name: Permissions check
+    runs-on:
+      - metal
+    steps:
+    - name: Check if user is an org member
+      uses: actions/github-script@v7
+      id: is-organization-member
+      with:
+        result-encoding: string
+        script: |
+          return (
+            await github.rest.orgs.listMembers({
+              org: 'golemfoundation'
+            })
+          ).data.map(({login}) => login).includes('${{ github.event.pull_request.user.login }}').toString()
+
+    - name: Validate CI run checks
+      run: |
+        if [[ "${{ github.event_name }}" == 'pull_request' && "${{ steps.is-organization-member.outputs.result }}" == "false" ]]; then
+          echo 'Not an org member'
+          exit 1
+        fi
+
+        if [[ "${{ github.pull_request_review }}" == 'pull_request' && "${{ steps.is-organization-member.outputs.result }}" == "false" ]]; then
+          echo 'Not an org member'
+          exit 2
+        fi
+      shell: bash
