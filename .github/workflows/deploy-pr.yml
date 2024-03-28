@@ -68,7 +68,7 @@ jobs:
         script: |
           return (
             await github.rest.orgs.listMembers({
-              org: golemfoundation
+              org: 'golemfoundation'
             })
           ).data.map(({login}) => login).includes('${{ github.event.comment.user.login }}').toString()
 
